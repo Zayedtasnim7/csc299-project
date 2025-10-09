@@ -1,147 +1,48 @@
-# -*- coding: utf-8 -*-
-from __future__ import annotations
-import argparse, json, uuid
-from dataclasses import dataclass, asdict
-from datetime import datetime, date
-from pathlib import Path
-from typing import List, Optional
-
-# ---- storage setup ----
-DATA_DIR = Path("data")
-DATA_DIR.mkdir(exist_ok=True)
-TASKS_FILE = DATA_DIR / "tasks.json"
-DATE_FMT = "%Y-%m-%d"
-
-def _init_file():
-    if not TASKS_FILE.exists():
-        TASKS_FILE.write_text("[]", encoding="utf-8")
-
-def _load() -> List[dict]:
-    _init_file()
-    return json.loads(TASKS_FILE.read_text(encoding="utf-8"))
-
-def _save(rows: List[dict]) -> None:
-    TASKS_FILE.write_text(json.dumps(rows, indent=2), encoding="utf-8")
-
-# ---- model ----
-@dataclass
-class Task:
-    id: str
-    title: str
-    due: Optional[str] = None   # YYYY-MM-DD or None
-    done: bool = False
-
-    @staticmethod
-    def from_row(r: dict) -> "Task":
-        return Task(r["id"], r["title"], r.get("due"), r.get("done", False))
-
-# ---- helpers ----
-def _next_id() -> str:
-    return uuid.uuid4().hex[:8]
-
-def _parse_date(s: Optional[str]) -> Optional[date]:
-    if not s:
-        return None
-    return datetime.strptime(s, DATE_FMT).date()
-
-def _status_for(due: Optional[str], done: bool) -> str:
-    if done:
-        return "Done"
-    if not due:
-        return "Open"
-    today = date.today()
-    d = _parse_date(due)
-    if d < today: return "Overdue"
-    if d == today: return "Today"
-    if d == today.replace(day=today.day+1) if today.day < 28 else (today + (date(today.year, today.month, 28)-date(today.year, today.month, 27))):  # simple tomorrow
-        return "Tomorrow"
-    return "Open"
-
-def _print_table(rows: List[List[str]], headers: List[str]) -> None:
-    cols = list(zip(*(headers, *rows))) if rows else [headers]
-    widths = [max(len(str(x)) for x in col) for col in cols]
-    def line(cells: List[str]) -> str:
-        return "  ".join(str(c).ljust(w) for c, w in zip(cells, widths))
-    print(line(headers))
-    print(line(["-"*w for w in widths]))
-    for r in rows: print(line(r))
-
-# ---- commands ----
-def cmd_add(args):
-    rows = _load()
-    t = Task(id=_next_id(), title=args.title, due=args.due or None)
-    rows.append(asdict(t))
-    _save(rows)
-    print(f"Added: {t.id}  {t.title}  {t.due or ''}")
-
-def cmd_list(_):
-    rows = [Task.from_row(r) for r in _load()]
-    rows2 = [[t.id, t.title, t.due or "", _status_for(t.due, t.done)] for t in rows]
-    _print_table(rows2, ["ID", "Title", "Due", "Status"])
-
-def cmd_plan(_):
-    rows = [Task.from_row(r) for r in _load()]
-    def sort_key(t: Task):
-        d = _parse_date(t.due) if t.due else date.max
-        return (d, t.title.lower())
-    rows.sort(key=sort_key)
-    rows2 = [[t.id, t.title, t.due or "", _status_for(t.due, t.done)] for t in rows]
-    _print_table(rows2, ["ID", "Title", "Due", "Status"])
-
-def cmd_done(args):
-    rows = [Task.from_row(r) for r in _load()]
-    target = args.id.lower()
-    hit = None
-    for t in rows:
-        if t.id.startswith(target):
-            t.done = True
-            hit = t
-            break
-    if not hit:
-        print("No matching ID.")
-        return
-    _save([asdict(t) for t in rows])
-    print(f"Marked done: {hit.id}  {hit.title}")
-
-def cmd_del(args):
-    rows = [Task.from_row(r) for r in _load()]
-    target = args.id.lower()
-    new = [t for t in rows if not t.id.startswith(target)]
-    if len(new) == len(rows):
-        print("No matching ID.")
-        return
-    _save([asdict(t) for t in new])
-    print("Deleted.")
-
-# ---- CLI ----
-def build_cli():
-    p = argparse.ArgumentParser(prog="pkms", description="Tiny task manager")
-    sub = p.add_subparsers(required=True)
-
-    p_add = sub.add_parser("add", help="add a task")
-    p_add.add_argument("-t", "--title", required=True)
-    p_add.add_argument("-d", "--due", help="YYYY-MM-DD")
-    p_add.set_defaults(func=cmd_add)
-
-    p_list = sub.add_parser("list", help="list tasks")
-    p_list.set_defaults(func=cmd_list)
-
-    p_plan = sub.add_parser("plan", help="list tasks sorted by due date")
-    p_plan.set_defaults(func=cmd_plan)
-
-    p_done = sub.add_parser("done", help="mark task done (ID or prefix)")
-    p_done.add_argument("id")
-    p_done.set_defaults(func=cmd_done)
-
-    p_del = sub.add_parser("del", help="delete task (ID or prefix)")
-    p_del.add_argument("id")
-    p_del.set_defaults(func=cmd_del)
-    return p
+# app.py
+import argparse
+from core import add_task, list_tasks, plan_tasks, mark_done, delete_task, format_table
 
 def main():
-    parser = build_cli()
+    parser = argparse.ArgumentParser(prog="pkms", description="Personal task manager (AI Study Planner core)")
+    sub = parser.add_subparsers(dest="cmd", required=True)
+
+    # add
+    p_add = sub.add_parser("add", help="Add a new task")
+    p_add.add_argument("-t", "--title", required=True, help="Task title")
+    p_add.add_argument("-d", "--due", required=True, help="Due date (YYYY-MM-DD)")
+
+    # list
+    sub.add_parser("list", help="List all tasks")
+
+    # plan
+    sub.add_parser("plan", help="Plan view (Open first, sorted by due)")
+
+    # done
+    p_done = sub.add_parser("done", help="Mark a task as done by ID prefix")
+    p_done.add_argument("id_prefix", help="ID or unique prefix, e.g., e43a")
+
+    # del
+    p_del = sub.add_parser("del", help="Delete a task by ID prefix")
+    p_del.add_argument("id_prefix", help="ID or unique prefix, e.g., e696")
+
     args = parser.parse_args()
-    args.func(args)
+
+    if args.cmd == "add":
+        t = add_task(args.title, args.due)
+        print(f'Added: {t.id}  {t.title}  {t.due}  {t.status}')
+    elif args.cmd == "list":
+        print(format_table(list_tasks()), end="")
+    elif args.cmd == "plan":
+        print(format_table(plan_tasks()), end="")
+    elif args.cmd == "done":
+        t = mark_done(args.id_prefix)
+        if t:
+            print(f"Marked done: {t.id}  {t.title}")
+        else:
+            print("No matching ID.")
+    elif args.cmd == "del":
+        ok = delete_task(args.id_prefix)
+        print("Deleted." if ok else "No matching ID.")
 
 if __name__ == "__main__":
     main()
