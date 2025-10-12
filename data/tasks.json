@@ -1,8 +1,20 @@
 [
   {
-    "id": "f88d95ff",
-    "title": "Finish SE333 Assignment 2",
-    "due": "2025-10-10",
+    "id": "7df54897",
+    "title": "Study Python",
+    "due": "2025-10-12",
     "status": "Done"
+  },
+  {
+    "id": "25635385",
+    "title": "Read documentation",
+    "due": "2025-10-13",
+    "status": "Open"
+  },
+  {
+    "id": "d3e60884",
+    "title": "Complete project",
+    "due": "2025-10-17",
+    "status": "Open"
   }
 ]
