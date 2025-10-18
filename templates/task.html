@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}{{ task.title }} - PKMS Task Manager{% endblock %}
+
+{% block content %}
+<a href="/" style="color: #667eea; text-decoration: none; margin-bottom: 20px; display: inline-block;">← Back to Dashboard</a>
+
+<div style="background: #f9f9f9; padding: 30px; border-radius: 10px; border-left: 4px solid #667eea;">
+    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 30px;">
+        <div>
+            <h2 style="color: #333; margin-bottom: 15px;">{{ task.title }}</h2>
+            <div style="font-size: 16px; color: #666;">
+                <p><strong>Due:</strong> {{ task.due }}</p>
+                <p><strong>Status:</strong> 
+                    <span class="task-status {% if task.status == 'Done' %}done{% endif %}">{{ task.status }}</span>
+                </p>
+            </div>
+        </div>
+        <div style="font-size: 14px; text-align: right; color: #888;">
+            {% if task.urgency == 'overdue' %}
+            <div style="color: #e74c3c; font-weight: 600;">⚠️ Overdue</div>
+            {% elif task.urgency == 'today' %}
+            <div style="color: #f39c12; font-weight: 600;">📌 Today</div>
+            {% elif task.urgency == 'tomorrow' %}
+            <div style="color: #3498db; font-weight: 600;">📅 Tomorrow</div>
+            {% elif task.urgency == 'upcoming' %}
+            <div style="color: #27ae60; font-weight: 600;">⏳ Upcoming</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="button-group" style="margin-top: 30px;">
+        {% if task.status != 'Done' %}
+        <form method="POST" action="/done/{{ task.id }}" style="display: inline;">
+            <button class="btn btn-success" type="submit">✓ Mark as Done</button>
+        </form>
+        {% endif %}
+        <a href="/edit/{{ task.id }}" class="btn btn-secondary">Edit</a>
+        <form method="POST" action="/delete/{{ task.id }}" style="display: inline;" onsubmit="return confirm('Delete this task?');">
+            <button class="btn btn-danger" type="submit">Delete</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

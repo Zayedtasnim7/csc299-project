@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Search - PKMS Task Manager{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 30px; color: #333;">Search Tasks</h2>
+
+<form method="GET" action="/search" style="margin-bottom: 30px; max-width: 500px;">
+    <div class="form-group">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search task titles..." autofocus>
+    </div>
+    <button type="submit" class="btn btn-primary">Search</button>
+</form>
+
+{% if query %}
+    {% if results %}
+    <h3 style="color: #333; margin-bottom: 20px;">Found {{ results|length }} result{{ results|length != 1 and 's' or '' }}</h3>
+    {% for item in results %}
+    <div class="task-card {{ item.urgency }}">
+        <div class="task-header">
+            <a href="/task/{{ item.task.id }}" style="text-decoration: none; color: inherit; flex: 1;">
+                <div class="task-title">{{ item.task.title }}</div>
+                <div class="task-date">Due: {{ item.task.due }}</div>
+            </a>
+            <span class="task-status {% if item.task.status == 'Done' %}done{% endif %}">{{ item.task.status }}</span>
+        </div>
+        <div class="task-actions">
+            {% if item.task.status != 'Done' %}
+            <form method="POST" action="/done/{{ item.task.id }}" style="display: inline;">
+                <button class="btn btn-success" type="submit">✓ Done</button>
+            </form>
+            {% endif %}
+            <a href="/edit/{{ item.task.id }}" class="btn btn-secondary">Edit</a>
+            <form method="POST" action="/delete/{{ item.task.id }}" style="display: inline;" onsubmit="return confirm('Delete this task?');">
+                <button class="btn btn-danger" type="submit">Delete</button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">🔍</div>
+        <h3>No results found</h3>
+        <p>No tasks match your search for "{{ query }}"</p>
+        <a href="/" class="btn btn-primary" style="margin-top: 20px;">← Back to Dashboard</a>
+    </div>
+    {% endif %}
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon">🔍</div>
+    <h3>Search your tasks</h3>
+    <p>Enter a search term above to find tasks</p>
+</div>
+{% endif %}
+{% endblock %}

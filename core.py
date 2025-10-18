@@ -199,15 +199,23 @@ def plan_tasks() -> List[Task]:
         return (0 if t.status == "Open" else 1, _parse_due(t.due), t.title.lower())
     return sorted(tasks, key=sort_key)
 
+
 def mark_done(prefix: str) -> Optional[Task]:
-    """Mark the task (by unique ID prefix) as Done. Returns the task or None."""
+    """Toggle the task status (Open ↔ Done) by unique ID prefix. Returns the task or None."""
     tasks = _load_db()
     match = _match_by_prefix(tasks, prefix)
     if not match:
         return None
-    match.status = "Done"
+    
+    # Toggle status
+    if match.status == "Done":
+        match.status = "Open"
+    else:
+        match.status = "Done"
+    
     _save_db(tasks)
     return match
+
 
 def delete_task(prefix: str) -> bool:
     """Delete a task (by unique ID prefix). Returns True if deleted."""

@@ -9,11 +9,41 @@
     "id": "25635385",
     "title": "Read documentation",
     "due": "2025-10-13",
+    "status": "Done"
+  },
+  {
+    "id": "2f949c26",
+    "title": "study for midterm",
+    "due": "2025-10-17",
+    "status": "Done"
+  },
+  {
+    "id": "900134ea",
+    "title": "hhh",
+    "due": "2025-10-10",
+    "status": "Done"
+  },
+  {
+    "id": "fdddb2c8",
+    "title": "nnnn",
+    "due": "2025-10-02",
+    "status": "Done"
+  },
+  {
+    "id": "8aeb9f36",
+    "title": "hhh",
+    "due": "2025-10-17",
     "status": "Open"
   },
   {
-    "id": "d3e60884",
-    "title": "Complete project",
+    "id": "4df5b41d",
+    "title": "ccc",
+    "due": "2025-10-18",
+    "status": "Done"
+  },
+  {
+    "id": "d5c0a295",
+    "title": "lolo",
     "due": "2025-10-17",
     "status": "Open"
   }
