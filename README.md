@@ -176,9 +176,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - GitHub: [@Zayedtasnim7](https://github.com/Zayedtasnim7)
 
 ## 🎓 Course Information
-
-- **Course**: CSC299 - Special Topics in Computer Science
-- **Institution**: [Your University]
+-   CSC299 vibe coding      
+- **Institution**: Depaul Uni
 - **Semester**: Fall 2025
 - **Project**: Personal Knowledge Management & Task System
 
