@@ -33,7 +33,7 @@
     "id": "8aeb9f36",
     "title": "hhh",
     "due": "2025-10-17",
-    "status": "Open"
+    "status": "Done"
   },
   {
     "id": "4df5b41d",
@@ -45,6 +45,24 @@
     "id": "d5c0a295",
     "title": "lolo",
     "due": "2025-10-17",
+    "status": "Done"
+  },
+  {
+    "id": "0ca1b78b",
+    "title": "<study for midterm>",
+    "due": "<oct 22>",
+    "status": "Done"
+  },
+  {
+    "id": "17f79185",
+    "title": "< go to the gym>",
+    "due": "< tomorrow >",
+    "status": "Done"
+  },
+  {
+    "id": "6d59d450",
+    "title": "finish SE333 Assignment",
+    "due": "2025-10-22",
     "status": "Open"
   }
 ]
