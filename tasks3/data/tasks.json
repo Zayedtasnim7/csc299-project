@@ -1,0 +1,32 @@
+[
+  {
+    "id": "595b364b",
+    "title": "Test task",
+    "due": "2025-12-01",
+    "status": "Open"
+  },
+  {
+    "id": "0f6aa170",
+    "title": "Python homework",
+    "due": "2025-12-01",
+    "status": "Open"
+  },
+  {
+    "id": "d32bb7da",
+    "title": "Java assignment",
+    "due": "2025-12-02",
+    "status": "Open"
+  },
+  {
+    "id": "f5702a18",
+    "title": "Complete tasks3",
+    "due": "2025-11-24",
+    "status": "Open"
+  },
+  {
+    "id": "bd649b0c",
+    "title": "Finish tasks4",
+    "due": "2025-11-24",
+    "status": "Open"
+  }
+]
