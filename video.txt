@@ -1,7 +1,1 @@
-﻿YouTube Video URL: [TO BE ADDED]
-
-Video Title: CSC299 Final Project - AI-Assisted Task Manager Development
-
-Video Description:
-This 6-8 minute video demonstrates the development of a task management system
-using various AI-assisted development approaches, including spec-kit methodology.
+﻿https://youtu.be/aGarVkHZ40E
