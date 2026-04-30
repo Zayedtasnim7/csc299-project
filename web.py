@@ -162,10 +162,9 @@ def api_tasks():
 # Run the app
 # =====================
 
-if __name__ == '__main__':
-    print("Starting PKMS Task Manager Web UI...")
-    print("Open your browser and go to: http://localhost:5000")
-    print("Press Ctrl+C to stop the server")
-    app.run(debug=True, port=5000)
+import os
 
-    
+if __name__ == "__main__":
+    print("Starting FocusFlow Web App...")
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
