@@ -48,19 +48,23 @@ class Task:
 # =========================
 # Internal helpers
 # =========================
-def _load_db() -> List[Task]:
+def _load_db(user_id: str) -> List[Task]:
     """Load tasks from JSON, returning an empty list if file is missing/corrupt."""
-    if not DB_FILE.exists():
+    user_file = DATA_DIR / f"{user_id}.json"
+
+    if not user_file.exists():
         return []
+
     try:
-        raw = json.loads(DB_FILE.read_text(encoding="utf-8"))
+        raw = json.loads(user_file.read_text(encoding="utf-8"))
         return [Task(**t) for t in raw]
     except Exception:
         return []
-
-def _save_db(tasks: List[Task]) -> None:
+    
+def _save_db(user_id: str, tasks: List[Task]) -> None:
     """Persist tasks to JSON with pretty-printing."""
-    DB_FILE.write_text(json.dumps([asdict(t) for t in tasks], indent=2), encoding="utf-8")
+    user_file = DATA_DIR / f"{user_id}.json"
+    user_file.write_text(json.dumps([asdict(t) for t in tasks], indent=2), encoding="utf-8")
 
 def _parse_due(due_str: str) -> date:
     """Parse strict YYYY-MM-DD into a date."""
@@ -151,9 +155,9 @@ def parse_due_friendly(s: str) -> str:
 # =========================
 # Commands
 # =========================
-def add_task(title: str, due: str):
+def add_task(user_id: str, title: str, due: str):
     """Add a new task unless one with the same (title, due) already exists; return the task."""
-    tasks = _load_db()
+    tasks = _load_db(user_id)
 
     # Parse friendly date to YYYY-MM-DD format
     try:
@@ -161,7 +165,7 @@ def add_task(title: str, due: str):
     except ValueError:
         ndue = due.strip()
 
-    # Duplicate guard: return existing task with same (title, due)
+    # Duplicate guard
     for t in tasks:
         if t.title.strip() == title.strip() and t.due == ndue:
             return t
@@ -169,84 +173,95 @@ def add_task(title: str, due: str):
     # Create new task
     new_task = Task(id=_gen_id(), title=title.strip(), due=ndue, status="Open")
     tasks.append(new_task)
-    _save_db(tasks)
+    _save_db(user_id, tasks)
     return new_task
 
 
-def edit_task(prefix: str, *, title: Optional[str] = None, due: Optional[str] = None) -> Optional[Task]:
+def edit_task(user_id: str, prefix: str, *, title: Optional[str] = None, due: Optional[str] = None) -> Optional[Task]:
     """Edit a task's title and/or due by ID prefix."""
-    tasks = _load_db()
+    tasks = _load_db(user_id)
     t = _match_by_prefix(tasks, prefix)
+
     if not t:
         return None
+
     if title is None and due is None:
         return t
+
     if title is not None:
         t.title = title
+
     if due is not None:
         t.due = parse_due_friendly(due)
-    _save_db(tasks)
+
+    _save_db(user_id, tasks)
     return t
 
-def list_tasks() -> List[Task]:
+def list_tasks(user_id: str) -> List[Task]:
     """Return tasks in stored order."""
-    return _load_db()
+    return _load_db(user_id)
 
-def plan_tasks() -> List[Task]:
+def plan_tasks(user_id: str) -> List[Task]:
     """Return tasks sorted: Open first, then by due date, then by title."""
-    tasks = _load_db()
+    tasks = _load_db(user_id)
+
     def sort_key(t: Task):
         return (0 if t.status == "Open" else 1, _parse_due(t.due), t.title.lower())
     return sorted(tasks, key=sort_key)
 
 
-def mark_done(prefix: str) -> Optional[Task]:
+def mark_done(user_id: str, prefix: str) -> Optional[Task]:
     """Toggle the task status (Open ↔ Done) by unique ID prefix. Returns the task or None."""
-    tasks = _load_db()
+    tasks = _load_db(user_id)
     match = _match_by_prefix(tasks, prefix)
+
     if not match:
         return None
-    
+
     # Toggle status
     if match.status == "Done":
         match.status = "Open"
     else:
         match.status = "Done"
-    
-    _save_db(tasks)
+
+    _save_db(user_id, tasks)
     return match
 
 
-def delete_task(prefix: str) -> bool:
+def delete_task(user_id: str, prefix: str) -> bool:
     """Delete a task (by unique ID prefix). Returns True if deleted."""
-    tasks = _load_db()
+    tasks = _load_db(user_id)
     match = _match_by_prefix(tasks, prefix)
+
     if not match:
         return False
+
     new_tasks = [t for t in tasks if t.id != match.id]
-    _save_db(new_tasks)
+    _save_db(user_id, new_tasks)
     return True
 
-def search_tasks(query: str) -> List[Task]:
+def search_tasks(user_id: str, query: str) -> List[Task]:
     """Case-insensitive substring search in title."""
     q = query.strip().lower()
-    return [t for t in _load_db() if q in t.title.lower()]
+    return [t for t in _load_db(user_id) if q in t.title.lower()]
 
-def tasks_today() -> List[Task]:
+def tasks_today(user_id: str) -> List[Task]:
     """Tasks due today."""
     today_s = _today().strftime(DATE_FMT)
-    return [t for t in _load_db() if t.due == today_s]
+    return [t for t in _load_db(user_id) if t.due == today_s]
 
-def tasks_overdue() -> List[Task]:
+def tasks_overdue(user_id: str) -> List[Task]:
     """Open tasks past due date."""
     today = _today()
     out = []
-    for t in _load_db():
+
+    for t in _load_db(user_id):
         try:
             if t.status == "Open" and _parse_due(t.due) < today:
                 out.append(t)
         except Exception:
             pass
+
     return out
 
 
@@ -299,13 +314,13 @@ def plan_sections(tasks, today: date | None = None):
 # =========================
 # Public load/save aliases (for app.py compatibility)
 # =========================
-def load_tasks() -> List[Task]:
+def load_tasks(user_id: str) -> List[Task]:
     """Public alias for _load_db()."""
-    return _load_db()
+    return _load_db(user_id)
 
-def save_tasks(tasks: List[Task]) -> None:
+def save_tasks(user_id: str, tasks: List[Task]) -> None:
     """Public alias for _save_db()."""
-    _save_db(tasks)
+    _save_db(user_id, tasks)
 
 
 # =========================
@@ -361,7 +376,7 @@ def export_csv(path: str = "export.csv") -> str:
     Export all tasks to CSV at `path` (default: export.csv).
     Returns the path written.
     """
-    tasks = _load_db()
+    tasks = _load_db("default")
     rows = to_rows(tasks)
     with open(path, "w", encoding="utf-8", newline="") as f:
         writer = DictWriter(f, fieldnames=["id", "title", "due", "status"])
