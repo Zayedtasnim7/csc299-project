@@ -27,4 +27,16 @@
     .tagline{
         text-align: center;
     }
+
+    @media (max-width: 600px) {
+    .timer-circle {
+        width: 85vw !important;
+        height: 85vw !important;
+        margin: 0 auto !important;
+    }
+
+    body {
+        overflow-x: hidden;
+    }
+}
 }
